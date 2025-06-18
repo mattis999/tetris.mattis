@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Tetris Spiel von Mattis</title>
+  <!-- Google Fonts für Arcade-Look -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      background: #22203a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Press Start 2P', monospace;
+      overflow: hidden;
+    }
+    .crt-frame {
+      position: relative;
+      width: 560px;
+      height: 720px;
+      background: radial-gradient(ellipse at 50% 60%, #333053 80%, #1a1730 100%);
+      border-radius: 36px 36px 80px 80px/48px 48px 90px 90px;
+      box-shadow: 0 0 120px 30px #221c38 inset, 0 0 60px #000, 0 0 8px 8px #48406b inset;
+      border: 8px solid #41407b;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    /* Raster-Gitter */
+    .crt-grid {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      background-image: 
+        linear-gradient(to right, #a958f320 1px, transparent 1px),
+        linear-gradient(to bottom, #a958f320 1px, transparent 1px);
+      background-size: 24px 24px;
+      background-position: 0 0;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    #login {
+      margin-bottom: 10px;
+      margin-top: 40px;
+    }
+    #spielbereich {
+      margin-top: 0;
+      width: 100%;
+      display: none;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #spieler {
+      color: #fff;
+      font-size: 10px;
+      margin: 12px 0 4px 0;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 0 #000, 0 0 3px #a958f3;
+    }
+    /* Arcade Scoreboard */
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      margin-bottom: 2px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #fff;
+      letter-spacing: 2px;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .score-title {
+      color: #ffdc5e;
+      text-shadow: 0 0 4px #fff, 0 0 2px #a958f3;
+    }
+    .score-value {
+      color: #fff;
+      text-shadow: 0 0 2px #a958f3;
+      margin-left: 4px;
+      margin-right: 18px;
+    }
+    .score-block {
+      display: flex;
+      align-items: center;
+    }
+    #spielfeld {
+      background: transparent;
+      margin: 0 auto 0 auto;
+      display: block;
+      z-index: 2;
+      border: 2px solid #a958f3;
+      box-shadow: 0 0 10px #a958f3;
+    }
+    #next-box {
+      position: absolute;
+      left: 258px;
+      top: 78px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      width: 110px;
+    }
+    .next-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #ffdc5e;
+      letter-spacing: 2px;
+      text-shadow: 0 0 2px #a958f3, 1px 1px 0 #000;
+      text-align: center;
+    }
+    #nextPiece {
+      margin-bottom: 6px;
+      background: transparent;
+      border: 2px solid #a958f3;
+      box-shadow: 0 0 6px #a958f3;
+    }
+    .arcade-btn {
+      background: #272727;
+      color: #ffdc5e;
+      border: 2px solid #a958f3;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      border-radius: 5px;
+      padding: 8px 18px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 4px #a958f3;
+      transition: background 0.2s;
+    }
+    .arcade-btn:hover {
+      background: #a958f3;
+      color: #fff;
+    }
+    #steuerung {
+      text-align: center;
+      color: #fff;
+      font-size: 10px;
+      margin-top: 6px;
+      margin-bottom: 0;
+      font-family: 'Press Start 2P', monospace;
+      text-shadow: 0 0 2px #a958f3;
+    }
+    /* Game Over Overlay */
+    #gameover-overlay {
+      position: absolute;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(40, 32, 60, 0.96);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .gameover-title {
+      color: #ffdc5e;
+      font-size: 34px;
+      font-family: 'Press Start 2P', monospace;
+      margin-bottom: 30px;
+      text-shadow: 0 0 14px #fff, 0 0 7px #a958f3, 2px 2px 0 #000;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .gameover-instr {
+      color: #fff;
+      font-size: 13px;
+      font-family: 'Press Start 2P', monospace;
+      margin-bottom: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      text-shadow: 0 0 2px #a958f3;
+    }
+    .credit-bar {
+      position: absolute;
+      bottom: 18px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #ffc200;
+      font-size: 10px;
+      font-family: 'Press Start 2P', monospace;
+      letter-spacing: 4px;
+      text-shadow: 0 0 2px #a958f3;
+    }
+    /* Chrome CRT Scanlines optional */
+    .scanlines:before {
+      content: '';
+      pointer-events: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.13;
+      z-index: 20;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 4px,
+        rgba(255,255,255,0.07) 5px,
+        transparent 7px,
+        transparent 11px
+      );
+    }
+    /* Input Styling */
+    input[type="text"] {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      padding: 8px;
+      border: 2px solid #a958f3;
+      border-radius: 5px;
+      background: #2d2750;
+      color: #fff;
+      margin-right: 8px;
+      outline: none;
+      box-shadow: 0 0 4px #a958f3;
+    }
+    /* Responsive */
+    @media (max-width: 540px) {
+      .crt-frame {
+        width: 99vw;
+        min-width: 0;
+        height: 98vw;
+        min-height: 0;
+      }
+      #next-box {
+        left: 60vw;
+      }
+      #spielbereich, .container {
+        width: 99vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="crt-frame scanlines">
+    <div class="crt-grid"></div>
+    <div class="container">
+      <div id="login">
+        <input type="text" id="username" placeholder="BENUTZERNAME">
+        <button class="arcade-btn" onclick="anmelden()">START</button>
+      </div>
+      <div id="spielbereich">
+        <div class="scoreboard">
+          <span class="score-block"><span class="score-title">1UP</span> <span class="score-value" id="punkte">00</span></span>
+          <span class="score-block"><span class="score-title">HI-SCORE</span> <span class="score-value" id="highscore">0</span></span>
+        </div>
+        <h2 id="spieler"></h2>
+        <div style="position:relative; width:240px; height:480px;">
+          <canvas id="spielfeld" width="240" height="480"></canvas>
+          <div id="next-box">
+            <div class="next-label">NEXT</div>
+            <canvas id="nextPiece" width="96" height="96"></canvas>
+          </div>
+        </div>
+        <button class="arcade-btn" onclick="neuesSpiel()">NEUES SPIEL</button>
+        <div id="steuerung">
+          <p>STEUERUNG: ← → (PFEILTASTEN), DREHEN (OBEN), SCHNELLFALLEN (UNTEN)</p>
+        </div>
+      </div>
+      <div id="gameover-overlay">
+        <div class="gameover-title">GAME OVER</div>
+        <div class="gameover-instr">PRESS ANY KEY TO CONTINUE...</div>
+        <div class="credit-bar">
+          A B C D E F G H I J K L M N O P Q R<br>S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CREDIT 0
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="tetris.js"></script>
+</body>
+</html>
