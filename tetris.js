@@ -1,33 +1,38 @@
-// Globale Variablen für Benutzer und Spielstand
+// ==============================
+// TETRIS SPIEL – KOMMENTIERTE VERSION
+// ==============================
+
+// Globale Variablen für Benutzername und Punkteverwaltung
 let username = "";
 let punkte = 0;
 let highscore = 0;
-let aktuelleGeschwindigkeit = 500; // Startgeschwindigkeit in ms
-const geschwindigkeitsStufe = 500; // Punkte bis zur nächsten Erhöhung
-const geschwindigkeitsSchritt = 0.05; // Wie viel Sekunden (0.05s) schneller
+let aktuelleGeschwindigkeit = 500; // Startgeschwindigkeit in Millisekunden (je kleiner, desto schneller)
+const geschwindigkeitsStufe = 500; // Punkteabstand bis zur nächsten Geschwindigkeitserhöhung
+const geschwindigkeitsSchritt = 0.05; // Schrittweite für Geschwindigkeitssteigerung (in Sekunden)
 
-const nextCanvas = document.getElementById('nextPiece'); // <canvas id="nextPiece">
+// Canvas für die Vorschau des nächsten Steins
+const nextCanvas = document.getElementById('nextPiece');
 const nextCtx = nextCanvas.getContext('2d');
-let naechsteFigur = null;
+let naechsteFigur = null; // speichert die nächste Figur
 
-// Spielfeld-Parameter
-const reihen = 20;
-const spalten = 10;
-const blockGroesse = 24;
+// Spielfeld-Einstellungen
+const reihen = 20;          // Anzahl der Reihen im Spielfeld
+const spalten = 10;         // Anzahl der Spalten im Spielfeld
+const blockGroesse = 24;    // Größe eines Blocks in Pixeln
 
-// Farben für die verschiedenen Tetris-Steine (Arcade-ähnlich)
+// Farben für die verschiedenen Tetris-Steine
 const farben = [
-  null, // 0 = leer
-  "#e43b44", // 1: rot
-  "#00e756", // 2: grün
-  "#29adff", // 3: blau
-  "#fff024", // 4: gelb
-  "#00cfff", // 5: cyan
-  "#ff77a8", // 6: magenta
-  "#f58231", // 7: orange
+  null,          // 0 = kein Block
+  "#e43b44",     // 1: Rot (I)
+  "#00e756",     // 2: Grün (O)
+  "#29adff",     // 3: Blau (T)
+  "#fff024",     // 4: Gelb (S)
+  "#00cfff",     // 5: Cyan (Z)
+  "#ff77a8",     // 6: Magenta (J)
+  "#f58231",     // 7: Orange (L)
 ];
 
-// Definition der Tetris-Steine (Matrizen für jede Form)
+// Definition der Tetris-Figuren als 2D-Matrizen
 const formen = [
   [],
   [ // I-Form
@@ -67,17 +72,19 @@ const formen = [
   ]
 ];
 
-// Spielfeld und aktuelle Figur
-let spielfeld = [];
-let aktuelleFigur = null;
-let spielLaeuft = false;
-let timer;
+// Variablen für das Spielfeld und die aktuelle Figur
+let spielfeld = [];         // 2D-Array für das Spielfeld
+let aktuelleFigur = null;   // Objekt für die aktuell fallende Figur
+let spielLaeuft = false;    // Status, ob das Spiel aktiv läuft
+let timer;                  // Intervall-Timer für die Fall-Logik
 
-// Canvas zum Zeichnen des Spiels
+// Canvas für das Spielfeld
 const canvas = document.getElementById('spielfeld');
 const ctx = canvas.getContext('2d');
 
-// === Anmeldung ===
+// ==============================
+// ANMELDE-FUNKTION
+// ==============================
 function anmelden() {
   const name = document.getElementById('username').value.trim();
   if (name.length === 0) {
@@ -93,14 +100,17 @@ function anmelden() {
   neuesSpiel();
 }
 
-// === Highscore laden ===
+// ==============================
+// HIGHSCORE-VERWALTUNG
+// ==============================
 function ladeHighscore() {
+  // Lade Highscore aus dem lokalen Speicher, benutzerspezifisch
   const hs = localStorage.getItem('tetris_highscore_' + username);
   return hs ? parseInt(hs) : 0;
 }
 
-// === Highscore speichern ===
 function speichereHighscore() {
+  // Speicher neuen Highscore, wenn aktueller Score besser ist
   if (punkte > highscore) {
     localStorage.setItem('tetris_highscore_' + username, punkte);
     highscore = punkte;
@@ -108,8 +118,11 @@ function speichereHighscore() {
   }
 }
 
-// === Spielfeld initialisieren ===
+// ==============================
+// FELD INITIALISIEREN
+// ==============================
 function initSpielfeld() {
+  // Erzeugt ein leeres Spielfeld (2D-Array)
   spielfeld = [];
   for (let y = 0; y < reihen; y++) {
     spielfeld[y] = [];
@@ -119,7 +132,9 @@ function initSpielfeld() {
   }
 }
 
-// === Starte ein neues Spiel ===
+// ==============================
+// NEUES SPIEL STARTEN
+// ==============================
 function neuesSpiel() {
   punkte = 0;
   aktuelleGeschwindigkeit = 500; // Geschwindigkeit zurücksetzen
@@ -135,18 +150,22 @@ function neuesSpiel() {
   hideGameOver();
 }
 
-// === Hilfsfunktion für Zufallsfigur ===
+// ==============================
+// ZUFALLSFIGUR GENERIEREN
+// ==============================
 function generiereZufallsFigur() {
-  const typ = Math.floor(Math.random() * 7) + 1;
+  const typ = Math.floor(Math.random() * 7) + 1; // Zufallszahl 1..7
   return {
-    matrix: formen[typ].map(zeile => zeile.slice()), // Tiefe Kopie
-    x: Math.floor(spalten / 2) - 2,
+    matrix: formen[typ].map(zeile => zeile.slice()), // Tiefe Kopie der Matrix
+    x: Math.floor(spalten / 2) - 2, // Start in der Mitte
     y: 0,
     typ: typ
   };
 }
 
-// === Neue Figur erzeugen ===
+// ==============================
+// NEUE FIGUR INS SPIEL HOLEN
+// ==============================
 function neueFigur() {
   if (naechsteFigur === null) {
     naechsteFigur = generiereZufallsFigur();
@@ -156,6 +175,7 @@ function neueFigur() {
   aktuelleFigur.y = 0;
   naechsteFigur = generiereZufallsFigur();
 
+  // Wenn direkt nach dem Einfügen eine Kollision → Game Over
   if (kollidiert(aktuelleFigur.matrix, aktuelleFigur.x, aktuelleFigur.y)) {
     spielLaeuft = false;
     clearInterval(timer);
@@ -166,13 +186,16 @@ function neueFigur() {
   zeichneNextPiece();
 }
 
-// === Funktion um nächsten Stein zu zeichnen ===
+// ==============================
+// VORSCHAU DES NÄCHSTEN BLOCKS
+// ==============================
 function zeichneNextPiece() {
   nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
   if (!naechsteFigur) return;
   const m = naechsteFigur.matrix;
   const size = m.length;
   const block = blockGroesse;
+  // zentrierte Darstellung im Vorschau-Canvas
   const offsetX = Math.floor((nextCanvas.width - size * block) / 2);
   const offsetY = Math.floor((nextCanvas.height - size * block) / 2);
 
@@ -189,8 +212,11 @@ function zeichneNextPiece() {
   }
 }
 
-// === Kollisionsprüfung ===
+// ==============================
+// KOLLISIONSERKENNUNG
+// ==============================
 function kollidiert(matrix, posX, posY) {
+  // Prüft, ob die übergebene Matrix an Position (posX, posY) im Spielfeld kollidiert
   for (let y = 0; y < matrix.length; y++) {
     for (let x = 0; x < matrix[y].length; x++) {
       if (
@@ -210,7 +236,9 @@ function kollidiert(matrix, posX, posY) {
   return false;
 }
 
-// === Figur fixieren und Reihen prüfen ===
+// ==============================
+// FIGUR FIXIEREN (AUF FELD LEGEN)
+// ==============================
 function figurFixieren() {
   const m = aktuelleFigur.matrix;
   for (let y = 0; y < m.length; y++) {
@@ -228,33 +256,38 @@ function figurFixieren() {
   neueFigur();
 }
 
-// === Volle Reihen löschen und Punkte vergeben ===
+// ==============================
+// VOLLE REIHEN SUCHEN/LÖSCHEN
+// ==============================
 function reihenPruefen() {
   let reihenGeloescht = 0;
   outer: for (let y = spielfeld.length - 1; y >= 0; y--) {
     for (let x = 0; x < spalten; x++) {
       if (spielfeld[y][x] === 0) {
-        continue outer;
+        continue outer; // Nicht komplett belegt, nächste Reihe prüfen
       }
     }
-    // Komplette Reihe gefunden, löschen
+    // Komplette Reihe gefunden, löschen und neue oben einfügen
     spielfeld.splice(y, 1);
     spielfeld.unshift(Array(spalten).fill(0));
     reihenGeloescht++;
-    y++;
+    y++; // gleiche Zeile nochmal prüfen (da verschoben)
   }
   if (reihenGeloescht > 0) {
+    // Punktevergabe je nach Anzahl gelöschter Reihen
     punkte += [0, 100, 300, 700, 1500][reihenGeloescht];
     document.getElementById('punkte').innerText = punkte.toString().padStart(2, '0');
     aktualisiereGeschwindigkeit();
   }
 }
 
-// === Geschwindigkeit aktualisieren ===
+// ==============================
+// GESCHWINDIGKEIT ANPASSEN
+// ==============================
 function aktualisiereGeschwindigkeit() {
-  // Für je 500 Punkte um 0.2s schneller!
+  // Für je 500 Punkte um 0.2s schneller, mind. 100ms
   const stufen = Math.floor(punkte / geschwindigkeitsStufe);
-  const neueGeschwindigkeit = Math.max(100, 500 - stufen * geschwindigkeitsSchritt * 1000); // min. 100ms
+  const neueGeschwindigkeit = Math.max(100, 500 - stufen * geschwindigkeitsSchritt * 1000);
   if (neueGeschwindigkeit !== aktuelleGeschwindigkeit) {
     aktuelleGeschwindigkeit = neueGeschwindigkeit;
     clearInterval(timer);
@@ -262,20 +295,24 @@ function aktualisiereGeschwindigkeit() {
   }
 }
 
-// === Figur drehen ===
+// ==============================
+// FIGUR DREHEN
+// ==============================
 function dreheFigur() {
   const m = aktuelleFigur.matrix;
-  // Transponieren und dann Zeilen umkehren
+  // Matrix transponieren und Zeilen umkehren (90° Drehung)
   const gedreht = m[0].map((_, i) => m.map(row => row[i])).reverse();
-  // Prüfen, ob Drehung möglich ist
   if (!kollidiert(gedreht, aktuelleFigur.x, aktuelleFigur.y)) {
     aktuelleFigur.matrix = gedreht;
   }
 }
 
-// === Spieltick: Figur nach unten bewegen oder fixieren ===
+// ==============================
+// SPIELTICK (SPIEL-SCHRITT)
+// ==============================
 function spielTick() {
   if (!spielLaeuft) return;
+  // Figur eins nach unten, oder fixieren falls nicht möglich
   if (!kollidiert(aktuelleFigur.matrix, aktuelleFigur.x, aktuelleFigur.y + 1)) {
     aktuelleFigur.y++;
   } else {
@@ -285,12 +322,14 @@ function spielTick() {
   zeichneSpielfeld();
 }
 
-// === Spielfeld und aktuelle Figur zeichnen ===
+// ==============================
+// ALLES ZEICHNEN
+// ==============================
 function zeichneSpielfeld() {
-  // Raster zeichnen
+  // Hintergrund und Gitter zeichnen
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Hintergrund mit Gitter (dunkles Raster)
+  // Gitterlinien für das Spielfeld
   ctx.save();
   ctx.strokeStyle = "#a958f340";
   ctx.lineWidth = 1;
@@ -308,7 +347,7 @@ function zeichneSpielfeld() {
   }
   ctx.restore();
 
-  // Spielfeld zeichnen
+  // Alle gesetzten Blöcke zeichnen
   for (let y = 0; y < reihen; y++) {
     for (let x = 0; x < spalten; x++) {
       if (spielfeld[y][x] !== 0) {
@@ -316,7 +355,7 @@ function zeichneSpielfeld() {
       }
     }
   }
-  // Aktuelle Figur zeichnen
+  // Aktuelle, fallende Figur zeichnen
   const m = aktuelleFigur.matrix;
   for (let y = 0; y < m.length; y++) {
     for (let x = 0; x < m[y].length; x++) {
@@ -327,7 +366,9 @@ function zeichneSpielfeld() {
   }
 }
 
-// === Einzelnen Block zeichnen ===
+// ==============================
+// EINEN BLOCK ZEICHNEN
+// ==============================
 function zeichneBlock(x, y, farbe) {
   ctx.fillStyle = farbe;
   ctx.fillRect(x * blockGroesse + 1, y * blockGroesse + 1, blockGroesse - 2, blockGroesse - 2);
@@ -336,8 +377,11 @@ function zeichneBlock(x, y, farbe) {
   ctx.strokeRect(x * blockGroesse + 1, y * blockGroesse + 1, blockGroesse - 2, blockGroesse - 2);
 }
 
-// === Tastatursteuerung ===
+// ==============================
+// TASTENSTEUERUNG
+// ==============================
 document.addEventListener('keydown', function(e) {
+  // Bei GameOver: beliebige Taste startet neues Spiel
   if (!spielLaeuft && document.getElementById('gameover-overlay').style.display === 'flex') {
     neuesSpiel();
     return;
@@ -345,31 +389,37 @@ document.addEventListener('keydown', function(e) {
   if (!spielLaeuft) return;
   switch (e.key) {
     case "ArrowLeft":
+      // Nach links bewegen
       if (!kollidiert(aktuelleFigur.matrix, aktuelleFigur.x - 1, aktuelleFigur.y)) {
         aktuelleFigur.x--;
         zeichneSpielfeld();
       }
       break;
     case "ArrowRight":
+      // Nach rechts bewegen
       if (!kollidiert(aktuelleFigur.matrix, aktuelleFigur.x + 1, aktuelleFigur.y)) {
         aktuelleFigur.x++;
         zeichneSpielfeld();
       }
       break;
     case "ArrowDown":
+      // Nach unten (schneller fallen lassen)
       if (!kollidiert(aktuelleFigur.matrix, aktuelleFigur.x, aktuelleFigur.y + 1)) {
         aktuelleFigur.y++;
         zeichneSpielfeld();
       }
       break;
     case "ArrowUp":
+      // Figur drehen
       dreheFigur();
       zeichneSpielfeld();
       break;
   }
 });
 
-// Game Over Overlay
+// ==============================
+// GAME OVER OVERLAY ANZEIGEN / VERSTECKEN
+// ==============================
 function showGameOver() {
   const overlay = document.getElementById('gameover-overlay');
   overlay.style.display = 'flex';
