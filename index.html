@@ -6,6 +6,7 @@
   <!-- Google Fonts für Arcade-Look -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
+    /* Grund- und Layout-Styles für die Seite und das Spiel-Design */
     html, body {
       height: 100%;
       margin: 0;
@@ -15,13 +16,14 @@
       min-height: 100vh;
       margin: 0;
       padding: 0;
-      background: #22203a;
+      background: #22203a; /* dunkler Hintergrund */
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: 'Press Start 2P', monospace;
       overflow: hidden;
     }
+    /* CRT Rahmen für Arcade-Optik */
     .crt-frame {
       position: relative;
       width: 560px;
@@ -36,7 +38,7 @@
       align-items: center;
       justify-content: flex-start;
     }
-    /* Raster-Gitter */
+    /* Raster für CRT-Effekt */
     .crt-grid {
       position: absolute;
       left: 0; top: 0;
@@ -49,6 +51,7 @@
       background-size: 24px 24px;
       background-position: 0 0;
     }
+    /* Container für Inhalt im Rahmen */
     .container {
       position: relative;
       width: 100%;
@@ -59,10 +62,12 @@
       align-items: center;
       justify-content: flex-start;
     }
+    /* Login-Bereich Styling */
     #login {
       margin-bottom: 10px;
       margin-top: 40px;
     }
+    /* Spielbereich Styling, zunächst versteckt */
     #spielbereich {
       margin-top: 0;
       width: 100%;
@@ -72,6 +77,7 @@
       flex-direction: column;
       align-items: center;
     }
+    /* Spielername Styling */
     #spieler {
       color: #fff;
       font-size: 10px;
@@ -79,7 +85,7 @@
       letter-spacing: 2px;
       text-shadow: 1px 1px 0 #000, 0 0 3px #a958f3;
     }
-    /* Arcade Scoreboard */
+    /* Punktezähler und Highscore */
     .scoreboard {
       display: flex;
       justify-content: space-between;
@@ -105,6 +111,7 @@
       display: flex;
       align-items: center;
     }
+    /* Spielfeld-Canvas */
     #spielfeld {
       background: transparent;
       margin: 0 auto 0 auto;
@@ -113,6 +120,7 @@
       border: 2px solid #a958f3;
       box-shadow: 0 0 10px #a958f3;
     }
+    /* Nächster Stein Vorschau */
     #next-box {
       position: absolute;
       left: 258px;
@@ -139,6 +147,7 @@
       border: 2px solid #a958f3;
       box-shadow: 0 0 6px #a958f3;
     }
+    /* Arcade Button Styling */
     .arcade-btn {
       background: #272727;
       color: #ffdc5e;
@@ -157,6 +166,7 @@
       background: #a958f3;
       color: #fff;
     }
+    /* Steuerungshinweis */
     #steuerung {
       text-align: center;
       color: #fff;
@@ -166,7 +176,7 @@
       font-family: 'Press Start 2P', monospace;
       text-shadow: 0 0 2px #a958f3;
     }
-    /* Game Over Overlay */
+    /* Game Over Overlay Styling */
     #gameover-overlay {
       position: absolute;
       z-index: 10;
@@ -196,6 +206,7 @@
       text-align: center;
       text-shadow: 0 0 2px #a958f3;
     }
+    /* Copyright Bar */
     .credit-bar {
       position: absolute;
       bottom: 18px;
@@ -208,7 +219,7 @@
       letter-spacing: 4px;
       text-shadow: 0 0 2px #a958f3;
     }
-    /* Chrome CRT Scanlines optional */
+    /* CRT Scanlines für zusätzlichen Effekt */
     .scanlines:before {
       content: '';
       pointer-events: none;
@@ -226,7 +237,7 @@
         transparent 11px
       );
     }
-    /* Input Styling */
+    /* Eingabefeld Styling */
     input[type="text"] {
       font-family: 'Press Start 2P', monospace;
       font-size: 11px;
@@ -239,7 +250,7 @@
       outline: none;
       box-shadow: 0 0 4px #a958f3;
     }
-    /* Responsive */
+    /* Responsive Design für Mobilgeräte */
     @media (max-width: 540px) {
       .crt-frame {
         width: 99vw;
@@ -258,12 +269,15 @@
 </head>
 <body>
   <div class="crt-frame scanlines">
+    <!-- CRT Raster -->
     <div class="crt-grid"></div>
     <div class="container">
+      <!-- Login-Bereich -->
       <div id="login">
         <input type="text" id="username" placeholder="BENUTZERNAME">
         <button class="arcade-btn" onclick="anmelden()">START</button>
       </div>
+      <!-- Spielbereich (nach Login sichtbar) -->
       <div id="spielbereich">
         <div class="scoreboard">
           <span class="score-block"><span class="score-title">Punkte</span> <span class="score-value" id="punkte">00</span></span>
@@ -271,23 +285,29 @@
         </div>
         <h2 id="spieler"></h2>
         <div style="position:relative; width:240px; height:480px;">
+          <!-- Hauptspielfeld -->
           <canvas id="spielfeld" width="240" height="480"></canvas>
+          <!-- Nächster Stein Vorschau -->
           <div id="next-box">
             <div class="next-label">NEXT</div>
             <canvas id="nextPiece" width="96" height="96"></canvas>
           </div>
         </div>
+        <!-- Button für neues Spiel -->
         <button class="arcade-btn" onclick="neuesSpiel()">NEUES SPIEL</button>
+        <!-- Steuerungshinweis -->
         <div id="steuerung">
           <p>STEUERUNG: ← → (PFEILTASTEN), DREHEN (OBEN), SCHNELLFALLEN (UNTEN)</p>
         </div>
       </div>
+      <!-- Overlay bei Game Over -->
       <div id="gameover-overlay">
         <div class="gameover-title">GAME OVER</div>
         <div class="gameover-instr">PRESS ANY KEY TO CONTINUE...</div>
       </div>
     </div>
   </div>
+  <!-- Spiellogik wird nachgeladen -->
   <script src="tetris.js"></script>
 </body>
 </html>
