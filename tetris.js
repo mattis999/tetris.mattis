@@ -346,8 +346,9 @@ function zeichneSpielfeld() {
     ctx.lineTo(spalten * blockGroesse, y * blockGroesse);
     ctx.stroke();
   }
-  ctx.restore();
   */
+  ctx.restore();
+  
 
   // Alle gesetzten Blöcke zeichnen
   for (let y = 0; y < reihen; y++) {
@@ -430,6 +431,7 @@ function hideGameOver() {
   const overlay = document.getElementById('gameover-overlay');
   overlay.style.display = 'none';
 }
+
 
 
 
