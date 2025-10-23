@@ -329,7 +329,7 @@ function zeichneSpielfeld() {
   // Hintergrund und Gitter zeichnen
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  
+  /*
   // Gitterlinien für das Spielfeld
   ctx.save();
   ctx.strokeStyle = "#a958f340";
@@ -347,7 +347,7 @@ function zeichneSpielfeld() {
     ctx.stroke();
   }
   ctx.restore();
-  
+  */
 
   // Alle gesetzten Blöcke zeichnen
   for (let y = 0; y < reihen; y++) {
@@ -430,5 +430,6 @@ function hideGameOver() {
   const overlay = document.getElementById('gameover-overlay');
   overlay.style.display = 'none';
 }
+
 
 
